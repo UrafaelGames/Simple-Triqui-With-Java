@@ -88,11 +88,11 @@ public class Proyecto
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 if (board[i][j] == ' ') {
-                    return false; // Hay una casilla vacía
+                    return false;
                 }
             }
         }
-        return true; // No hay casillas vacías, el tablero está lleno
+        return true; 
     }
 
     // Función para verificar si un jugador ha ganado
@@ -130,7 +130,7 @@ public class Proyecto
                 buttons[i][j].setText(" ");
             }
         }
-        playerActual = 'X'; // Volver a empezar con el jugador X
+        playerActual = 'X'; 
     }
 
     // Función principal para ejecutar la aplicación
@@ -145,8 +145,8 @@ public class Proyecto
         JPanel namePanel = new JPanel();
         namePanel.setLayout(new GridLayout(3, 2));
 
-        JTextField player1TextField = new JTextField(player1Name); // Campo para el nombre del jugador 1
-        JTextField player2TextField = new JTextField(player2Name); // Campo para el nombre del jugador 2
+        JTextField player1TextField = new JTextField(player1Name); 
+        JTextField player2TextField = new JTextField(player2Name); 
 
         namePanel.add(new JLabel("Jugador 1:"));
         namePanel.add(player1TextField);
