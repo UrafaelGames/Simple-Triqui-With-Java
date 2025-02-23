@@ -14,8 +14,8 @@ public class Proyecto
     private static int scoreX = 0;  
     private static int scoreO = 0; 
 
-    private static String player1Name = "Jugador 1";  // Nombre por defecto de Jugador 1
-    private static String player2Name = "Jugador 2";  // Nombre por defecto de Jugador 2
+    private static String player1Name = "Jugador 1";  
+    private static String player2Name = "Jugador 2"; 
 
     // Crear el tablero de botones
     public static JPanel createBoard(JLabel scoreLabel)
