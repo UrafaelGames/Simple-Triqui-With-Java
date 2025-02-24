@@ -2,184 +2,179 @@ package com.javier.proyecto;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-public class Proyecto
-{
-    private static char[][] board = {{' ', ' ', ' '}, {' ', ' ', ' '}, {' ', ' ', ' '}}; 
-    private static char playerActual = 'X'; 
-    private static JButton[][] buttons = new JButton[3][3]; 
+public class Proyecto {
+    private static char[][] board = new char[3][3];
+    private static char playerActual = 'X';
+    private static JButton[][] buttons = new JButton[3][3];
+    private static int scoreX = 0, scoreO = 0;
+    private static String player1Name = "Jugador 1", player2Name = "Jugador 2";
 
-    private static int scoreX = 0;  
-    private static int scoreO = 0; 
+    public static JPanel createBoard(JLabel scoreLabel) {
+        JPanel panel = new JPanel(new GridLayout(3, 3, 8, 8));
+        panel.setBackground(Color.DARK_GRAY);
 
-    private static String player1Name = "Jugador 1";  
-    private static String player2Name = "Jugador 2"; 
-
-    // Crear el tablero de botones
-    public static JPanel createBoard(JLabel scoreLabel)
-    {
-        JPanel panel = new JPanel();
-        panel.setLayout(new GridLayout(3, 3)); 
-
-        // Crear y configurar los botones
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
+                board[i][j] = ' ';
                 buttons[i][j] = new JButton(" ");
-                buttons[i][j].setFont(new Font("Arial", Font.PLAIN, 60));
+                buttons[i][j].setFont(new Font("Arial", Font.BOLD, 50));
                 buttons[i][j].setFocusPainted(false);
-                buttons[i][j].setBackground(Color.WHITE);
-                buttons[i][j].addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        JButton buttonPulsed = (JButton) e.getSource();
-                        int row = -1, col = -1;
+                buttons[i][j].setBackground(new Color(240, 240, 240));
+                buttons[i][j].setForeground(Color.BLACK);
 
-                        // Encontrar la posición del botón en el arreglo
-                        outerloop:
-                        for (int i = 0; i < 3; i++) {
-                            for (int j = 0; j < 3; j++) {
-                                if (buttons[i][j] == buttonPulsed) {
-                                    row = i;
-                                    col = j;
-                                    break outerloop;
-                                }
-                            }
-                        }
+                buttons[i][j].addActionListener(e -> {
+                    JButton button = (JButton) e.getSource();
+                    int row = -1, col = -1;
 
-                        // Si la casilla está vacía, se marca con el jugador actual
-                        if (board[row][col] == ' ') {
-                            board[row][col] = playerActual;
-                            buttonPulsed.setText(String.valueOf(playerActual));
-
-                            // Comprobar si hay un ganador
-                            if (checkWinner()) {
-                                // Actualizar el puntaje
-                                if (playerActual == 'X') {
-                                    scoreX++;
-                                } else {
-                                    scoreO++;
-                                }
-
-                                // Actualizar la etiqueta de puntajes
-                                scoreLabel.setText("Puntajes: " + player1Name + ": " + scoreX + " | " + player2Name + ": " + scoreO);
-                                JOptionPane.showMessageDialog(null, "¡El jugador " + (playerActual == 'X' ? player1Name : player2Name) + " ha ganado!\nPuntajes:\n" + player1Name + ": " + scoreX + " | " + player2Name + ": " + scoreO);
-                                restartGame();
-                            } else if (boardFull()) {
-                                JOptionPane.showMessageDialog(null, "¡Empate!");
-                                restartGame();
-                            } else {
-                                // Cambiar al siguiente jugador
-                                playerActual = (playerActual == 'X') ? 'O' : 'X';
+                    for (int x = 0; x < 3; x++) {
+                        for (int y = 0; y < 3; y++) {
+                            if (buttons[x][y] == button) {
+                                row = x;
+                                col = y;
+                                break;
                             }
                         }
                     }
+
+                    if (board[row][col] == ' ') {
+                        board[row][col] = playerActual;
+                        button.setText(String.valueOf(playerActual));
+                        button.setEnabled(false);
+                        button.setBackground(playerActual == 'X' ? new Color(255, 200, 200) : new Color(200, 200, 255));
+
+                        if (checkWinner()) {
+                            if (playerActual == 'X') scoreX++;
+                            else scoreO++;
+
+                            scoreLabel.setText(player1Name + " " + scoreX + " | " + player2Name + " " + scoreO);
+                            JOptionPane.showMessageDialog(null, "¡" + (playerActual == 'X' ? player1Name : player2Name) + " ha ganado!");
+                            restartGame();
+                        } else if (boardFull()) {
+                            JOptionPane.showMessageDialog(null, "¡Empate!");
+                            restartGame();
+                        } else {
+                            playerActual = (playerActual == 'X') ? 'O' : 'X';
+                        }
+                    }
                 });
+
                 panel.add(buttons[i][j]);
             }
         }
-
         return panel;
     }
 
-    // Función para verificar si el tablero está lleno (empate)
     public static boolean boardFull() {
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 3; j++) {
-                if (board[i][j] == ' ') {
-                    return false;
-                }
+        for (char[] row : board) {
+            for (char cell : row) {
+                if (cell == ' ') return false;
             }
         }
-        return true; 
+        return true;
     }
 
-    // Función para verificar si un jugador ha ganado
     public static boolean checkWinner() {
-        // Comprobar filas
         for (int i = 0; i < 3; i++) {
-            if (board[i][0] == playerActual && board[i][1] == playerActual && board[i][2] == playerActual) {
-                return true;
-            }
+            if (board[i][0] == playerActual && board[i][1] == playerActual && board[i][2] == playerActual) return true;
+            if (board[0][i] == playerActual && board[1][i] == playerActual && board[2][i] == playerActual) return true;
         }
-        
-        // Comprobar columnas
-        for (int i = 0; i < 3; i++) {
-            if (board[0][i] == playerActual && board[1][i] == playerActual && board[2][i] == playerActual) {
-                return true;
-            }
-        }
-
-        // Comprobar diagonales
-        if (board[0][0] == playerActual && board[1][1] == playerActual && board[2][2] == playerActual) {
-            return true;
-        }
-        if (board[0][2] == playerActual && board[1][1] == playerActual && board[2][0] == playerActual) {
-            return true;
-        }
-
-        return false; // No hay ganador
+        return (board[0][0] == playerActual && board[1][1] == playerActual && board[2][2] == playerActual) ||
+               (board[0][2] == playerActual && board[1][1] == playerActual && board[2][0] == playerActual);
     }
 
-    // Función para reiniciar el juego
     public static void restartGame() {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 board[i][j] = ' ';
                 buttons[i][j].setText(" ");
+                buttons[i][j].setEnabled(true);
+                buttons[i][j].setBackground(new Color(240, 240, 240));
             }
         }
-        playerActual = 'X'; 
+        playerActual = 'X';
     }
 
-    // Función principal para ejecutar la aplicación
     public static void main(String[] args) {
-        // Crear la ventana
-        JFrame window = new JFrame("Triqui");
+        JFrame window = new JFrame("Triqui :D");
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        window.setSize(400, 400);
-        window.setLocationRelativeTo(null); // Centrar la ventana
+        window.setSize(500, 600);
+        window.setLocationRelativeTo(null);
+        window.getContentPane().setBackground(new Color(50, 50, 50));
 
-        // Panel para ingresar los nombres de los jugadores
-        JPanel namePanel = new JPanel();
-        namePanel.setLayout(new GridLayout(3, 2));
+        // Panel principal con GridBagLayout para centrar elementos
+        JPanel mainPanel = new JPanel(new GridBagLayout());
+        mainPanel.setBackground(new Color(60, 60, 60));
 
-        JTextField player1TextField = new JTextField(player1Name); 
-        JTextField player2TextField = new JTextField(player2Name); 
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        namePanel.add(new JLabel("Jugador 1:"));
-        namePanel.add(player1TextField);
-        namePanel.add(new JLabel("Jugador 2:"));
-        namePanel.add(player2TextField);
+        JLabel titleLabel = new JLabel("Ingrese los nombres", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        titleLabel.setForeground(Color.WHITE);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        mainPanel.add(titleLabel, gbc);
+
+        JTextField player1TextField = new JTextField(player1Name);
+        player1TextField.setFont(new Font("Arial", Font.PLAIN, 14));
+        player1TextField.setBackground(Color.WHITE);
+        player1TextField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        JTextField player2TextField = new JTextField(player2Name);
+        player2TextField.setFont(new Font("Arial", Font.PLAIN, 14));
+        player2TextField.setBackground(Color.WHITE);
+        player2TextField.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+        gbc.gridwidth = 1;
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        mainPanel.add(new JLabel("Jugador 1:", SwingConstants.RIGHT), gbc);
+
+        gbc.gridx = 1;
+        mainPanel.add(player1TextField, gbc);
+
+        gbc.gridy = 2;
+        gbc.gridx = 0;
+        mainPanel.add(new JLabel("Jugador 2:", SwingConstants.RIGHT), gbc);
+
+        gbc.gridx = 1;
+        mainPanel.add(player2TextField, gbc);
 
         JButton startButton = new JButton("Comenzar Juego");
-        namePanel.add(startButton);
+        startButton.setFont(new Font("Arial", Font.BOLD, 16));
+        startButton.setBackground(new Color(255, 140, 0));
+        startButton.setForeground(Color.WHITE);
+        startButton.setFocusPainted(false);
 
-        // Acción del botón de inicio
-        startButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // Actualizar los nombres de los jugadores
-                player1Name = player1TextField.getText().isEmpty() ? "Jugador 1" : player1TextField.getText();
-                player2Name = player2TextField.getText().isEmpty() ? "Jugador 2" : player2TextField.getText();
+        gbc.gridy = 3;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        mainPanel.add(startButton, gbc);
 
-                // Crear el panel de puntajes
-                JPanel scorePanel = new JPanel();
-                JLabel scoreLabel = new JLabel("Puntajes: " + player1Name + ": " + scoreX + " | " + player2Name + ": " + scoreO);
-                scorePanel.add(scoreLabel);
-
-                // Crear el tablero y añadirlo a la ventana
-                JPanel boardPanel = createBoard(scoreLabel);
-                window.remove(namePanel); 
-                window.add(scorePanel, BorderLayout.NORTH); 
-                window.add(boardPanel, BorderLayout.CENTER);
-                window.revalidate(); 
-            }
-        });
-
-        // Añadir el panel de nombres a la ventana
-        window.add(namePanel);
+        window.add(mainPanel);
         window.setVisible(true);
+
+        startButton.addActionListener(e -> {
+            player1Name = player1TextField.getText().trim().isEmpty() ? "Jugador 1" : player1TextField.getText().trim();
+            player2Name = player2TextField.getText().trim().isEmpty() ? "Jugador 2" : player2TextField.getText().trim();
+
+            JPanel scorePanel = new JPanel();
+            scorePanel.setBackground(new Color(80, 80, 80));
+            JLabel scoreLabel = new JLabel(player1Name + " " + scoreX + " | " + player2Name + " " + scoreO);
+            scoreLabel.setFont(new Font("Arial", Font.BOLD, 18));
+            scoreLabel.setForeground(Color.WHITE);
+            scorePanel.add(scoreLabel);
+
+            JPanel boardPanel = createBoard(scoreLabel);
+
+            window.getContentPane().removeAll();
+            window.add(scorePanel, BorderLayout.NORTH);
+            window.add(boardPanel, BorderLayout.CENTER);
+            window.revalidate();
+            window.repaint();
+        });
     }
 }
