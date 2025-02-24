@@ -1,4 +1,4 @@
-# SimpleTrqui
+# Simple Triqui
 
 Hey everyone :)
 
