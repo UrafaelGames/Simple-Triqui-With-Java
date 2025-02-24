@@ -1,4 +1,4 @@
-package com.javier.proyecto;
+package com.urafael.proyecto;
 
 import javax.swing.*;
 import java.awt.*;
