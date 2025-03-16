@@ -1,7 +1,8 @@
-package com.urafael.proyecto;
-
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
+import javax.sound.sampled.*;
+import java.io.File;
+import java.io.IOException;
 
 public class Proyecto {
     private static char[][] board = new char[3][3];
@@ -11,6 +12,9 @@ public class Proyecto {
     private static String player1Name = "Jugador 1", player2Name = "Jugador 2";
     private static JLabel scoreLabel;
     private static JFrame gameWindow;
+    private static Clip backgroundMusic;
+    private static Clip xSound;
+    private static Clip oSound;
 
     public static void animateScore() {
         Timer timer = new Timer(100, null);
@@ -70,11 +74,18 @@ public class Proyecto {
                         Color cellColor = playerActual == 'X' ? new Color(255, 200, 200) : new Color(200, 200, 255);
                         animateButton(button, cellColor);
 
+                        // Reproducir sonido dependiendo del jugador
+                        if (playerActual == 'X') {
+                            playSound(xSound);
+                        } else {
+                            playSound(oSound);
+                        }
+
                         if (checkWinner()) {
                             for (int x = 0; x < 3; x++) {
                                 for (int y = 0; y < 3; y++) {
                                     if (board[x][y] == playerActual) {
-                                        animateButton(buttons[x][y], Color.YELLOW);
+                                        animateButton(buttons[x][y], Color.ORANGE);
                                     }
                                 }
                             }
@@ -156,9 +167,49 @@ public class Proyecto {
         gameWindow.add(resetButton, BorderLayout.SOUTH);
 
         gameWindow.setVisible(true);
+
+        // Reproducir música de fondo
+        playBackgroundMusic();
+    }
+
+    public static void playBackgroundMusic() {
+        try {
+            File musicFile = new File("background_music.wav");
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(musicFile);
+            backgroundMusic = AudioSystem.getClip();
+            backgroundMusic.open(audioInputStream);
+            backgroundMusic.loop(Clip.LOOP_CONTINUOUSLY);
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void playSound(Clip clip) {
+        if (clip != null) {
+            clip.setFramePosition(0);
+            clip.start();
+        }
+    }
+
+    public static void loadSounds() {
+        try {
+            File xSoundFile = new File("x_sound.wav");
+            AudioInputStream xAudioInputStream = AudioSystem.getAudioInputStream(xSoundFile);
+            xSound = AudioSystem.getClip();
+            xSound.open(xAudioInputStream);
+
+            File oSoundFile = new File("o_sound.wav");
+            AudioInputStream oAudioInputStream = AudioSystem.getAudioInputStream(oSoundFile);
+            oSound = AudioSystem.getClip();
+            oSound.open(oAudioInputStream);
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
+        loadSounds();
+
         JFrame window = new JFrame("Triqui :D - Inicio");
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setSize(400, 250);
