@@ -1,8 +1,8 @@
 import java.awt.*;
-import javax.swing.*;
-import javax.sound.sampled.*;
 import java.io.File;
 import java.io.IOException;
+import javax.sound.sampled.*;
+import javax.swing.*;
 
 public class Proyecto {
     private static char[][] board = new char[3][3];
@@ -12,9 +12,48 @@ public class Proyecto {
     private static String player1Name = "Jugador 1", player2Name = "Jugador 2";
     private static JLabel scoreLabel;
     private static JFrame gameWindow;
-    private static Clip backgroundMusic;
+    private static Clip menuMusic; // Música del menú
+    private static Clip gameMusic; // Música del juego
     private static Clip xSound;
     private static Clip oSound;
+    private static Clip winSound; // Efecto de sonido para el ganador
+
+    // Colores para la transición del fondo
+    private static final Color[] COLORS = {
+        new Color(255, 165, 0),   // Anaranjado
+        new Color(0, 0, 255),       // Azul
+        new Color(0, 255, 0),       // Verde
+        new Color(128, 0, 128),     // Violeta
+        new Color(255, 255, 0),     // Amarillo
+        new Color(255, 182, 193)    // Rosado claro
+    };
+    private static int currentColorIndex = 0;
+    private static float colorTransition = 0.0f;
+
+    // Clase personalizada para el panel con fondo animado
+    static class AnimatedBackgroundPanel extends JPanel {
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+
+            // Interpolación entre colores
+            Color startColor = COLORS[currentColorIndex];
+            Color endColor = COLORS[(currentColorIndex + 1) % COLORS.length];
+            Color currentColor = interpolateColor(startColor, endColor, colorTransition);
+
+            // Dibujar el fondo con el color actual
+            g.setColor(currentColor);
+            g.fillRect(0, 0, getWidth(), getHeight());
+        }
+
+        // Interpolación lineal entre dos colores
+        private Color interpolateColor(Color start, Color end, float fraction) {
+            int red = (int) (start.getRed() + (end.getRed() - start.getRed()) * fraction);
+            int green = (int) (start.getGreen() + (end.getGreen() - start.getGreen()) * fraction);
+            int blue = (int) (start.getBlue() + (end.getBlue() - start.getBlue()) * fraction);
+            return new Color(red, green, blue);
+        }
+    }
 
     public static void animateScore() {
         Timer timer = new Timer(100, null);
@@ -97,6 +136,7 @@ public class Proyecto {
                             }
                             scoreLabel.setText(player1Name + " " + scoreX + " | " + player2Name + " " + scoreO);
                             animateScore();
+                            playSound(winSound); // Reproducir sonido de victoria
                             JOptionPane.showMessageDialog(gameWindow, "¡" + (playerActual == 'X' ? player1Name : player2Name) + " ha ganado!");
                             restartGame();
                         } else if (boardFull()) {
@@ -145,6 +185,10 @@ public class Proyecto {
             }
         }
         playerActual = 'X';
+
+        // Reiniciar la música del juego
+        stopMusic(gameMusic);
+        playMusic(gameMusic);
     }
 
     public static void startGame() {
@@ -168,19 +212,21 @@ public class Proyecto {
 
         gameWindow.setVisible(true);
 
-        // Reproducir música de fondo
-        playBackgroundMusic();
+        // Cambiar a la música del juego
+        stopMusic(menuMusic);
+        playMusic(gameMusic);
     }
 
-    public static void playBackgroundMusic() {
-        try {
-            File musicFile = new File("background_music.wav");
-            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(musicFile);
-            backgroundMusic = AudioSystem.getClip();
-            backgroundMusic.open(audioInputStream);
-            backgroundMusic.loop(Clip.LOOP_CONTINUOUSLY);
-        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
-            e.printStackTrace();
+    public static void playMusic(Clip clip) {
+        if (clip != null) {
+            clip.setFramePosition(0); // Reinicia la música al principio
+            clip.loop(Clip.LOOP_CONTINUOUSLY);
+        }
+    }
+
+    public static void stopMusic(Clip clip) {
+        if (clip != null && clip.isRunning()) {
+            clip.stop();
         }
     }
 
@@ -193,6 +239,19 @@ public class Proyecto {
 
     public static void loadSounds() {
         try {
+            // Cargar música del menú
+            File menuMusicFile = new File("menu_music.wav");
+            AudioInputStream menuAudioInputStream = AudioSystem.getAudioInputStream(menuMusicFile);
+            menuMusic = AudioSystem.getClip();
+            menuMusic.open(menuAudioInputStream);
+
+            // Cargar música del juego
+            File gameMusicFile = new File("game_music.wav");
+            AudioInputStream gameAudioInputStream = AudioSystem.getAudioInputStream(gameMusicFile);
+            gameMusic = AudioSystem.getClip();
+            gameMusic.open(gameAudioInputStream);
+
+            // Cargar sonidos de X y O
             File xSoundFile = new File("x_sound.wav");
             AudioInputStream xAudioInputStream = AudioSystem.getAudioInputStream(xSoundFile);
             xSound = AudioSystem.getClip();
@@ -202,6 +261,12 @@ public class Proyecto {
             AudioInputStream oAudioInputStream = AudioSystem.getAudioInputStream(oSoundFile);
             oSound = AudioSystem.getClip();
             oSound.open(oAudioInputStream);
+
+            // Cargar sonido de victoria
+            File winSoundFile = new File("win_sound.wav");
+            AudioInputStream winAudioInputStream = AudioSystem.getAudioInputStream(winSoundFile);
+            winSound = AudioSystem.getClip();
+            winSound.open(winAudioInputStream);
         } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
             e.printStackTrace();
         }
@@ -210,14 +275,17 @@ public class Proyecto {
     public static void main(String[] args) {
         loadSounds();
 
+        // Reproducir música del menú al inicio
+        playMusic(menuMusic);
+
         JFrame window = new JFrame("Triqui :D - Inicio");
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         window.setSize(400, 250);
         window.setLocationRelativeTo(null);
-        window.getContentPane().setBackground(new Color(116, 239, 255));
 
-        JPanel mainPanel = new JPanel(new GridBagLayout());
-        mainPanel.setBackground(new Color(116, 239, 255));
+        // Crear un panel con fondo animado
+        AnimatedBackgroundPanel mainPanel = new AnimatedBackgroundPanel();
+        mainPanel.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -260,5 +328,16 @@ public class Proyecto {
 
         window.add(mainPanel);
         window.setVisible(true);
+
+        // Animación del fondo
+        Timer colorTimer = new Timer(50, e -> {
+            colorTransition += 0.01f;
+            if (colorTransition >= 1.0f) {
+                colorTransition = 0.0f;
+                currentColorIndex = (currentColorIndex + 1) % COLORS.length;
+            }
+            mainPanel.repaint();
+        });
+        colorTimer.start();
     }
 }
